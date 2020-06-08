@@ -25,6 +25,7 @@ $data = ['address' => $address];
 //var_dump($phone);
 //var_dump($addressString);
 
+createUser($email, $name, $phone);
 
 $db = getConnection();
 

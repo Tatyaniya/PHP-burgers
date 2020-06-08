@@ -24,26 +24,22 @@ function getConnection()
 //    return $prepared->execute($params);
 //}
 
-function createUser($email, $name, $phone) {
+function createUser($email, $name, $phone)
+{
     $db = getConnection();
     $query = ("INSERT INTO `users` (email, `name`, phone) VALUES (:email, :`name`, :phone)");
     $result = $db->prepare($query);
-    $result->execute(["user_email" => $email]);
+    $result->execute([
+        ':email' => $email,
+        ':`name`' => $name,
+        ':phone' => $phone
+    ]);
 
-
-//    $result = $db->exec($query, [
-//        ':email' => $email,
-//        ':name' => $name,
-//        ':phone' => $phone
-//    ]);
-//    if (!$result) {
-//        return false;
-//    }
 }
 
 
-
-function addOrder($userId, array $data) {
+function addOrder($userId, array $data)
+{
     $db = getConnection();
     $query = "INSERT INTO users(user_id, address, create_time) VALUES (:address)";
 
