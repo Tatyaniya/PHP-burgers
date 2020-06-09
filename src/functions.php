@@ -6,6 +6,15 @@ class Burger
      * @var PDO
      */
     private $pdo;
+    public $message;
+
+    /**
+     * @return mixed
+     */
+    public function getMessage()
+    {
+        return $this->message;
+    }
 
     /**
      * @param $inputData array
@@ -13,6 +22,7 @@ class Burger
     public function run($inputData)
     {
         $this->pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASSWORD);
+
 
         // Тут мы проверяем данные и приводим к нудному формату
         $data = $this->valider($inputData);
@@ -30,15 +40,14 @@ class Burger
                 // Добавляем новый заказ
                 $this->addOrder($userId, $data);
                 // выводим сообщение
-                return $message = $this->descOrder($userId);
+                $this->message = $this->descOrder($userId);
             }
             // Добавляем новый заказ
             $this->addOrder($userId, $data);
             // обновляем счетчик заказов
             $this->countOrders($userId);
             // выводим сообщение
-            return $message = $this->descOrder($userId);
-            //var_dump($message);
+            $this->message = $this->descOrder($userId);
         }
 
     }
@@ -155,7 +164,7 @@ class Burger
      */
     protected function countOrders($userId)
     {
-        $query = "UPDATE users SET count_orders = count_orders +1 WHERE id = $userId";
+        $query = "UPDATE users SET count_orders = count_orders + 1 WHERE id = $userId";
         $this->pdo->query($query);
     }
 
@@ -165,16 +174,16 @@ class Burger
      */
     protected function descOrder($userId) {
         $queryUser = $this->pdo->query("SELECT * FROM users WHERE id = $userId");
-        $queryOrder = $this->pdo->query("SELECT * FROM orders WHERE user_id = $userId");
+        $queryOrder = $this->pdo->query("SELECT * FROM orders  WHERE user_id = $userId ORDER BY id DESC LIMIT 1");
 
         $user = $queryUser->fetch(PDO::FETCH_ASSOC);
         $order = $queryOrder->fetch(PDO::FETCH_ASSOC);
 
-
-        $address = $order['address'];
         $countOrder = $user['count_orders'];
 
+        $address = $order['address'];
         $idOrder = $order['id'];
+
 
         return "Спасибо, ваш заказ будет доставлен по адресу: $address <br>
         Номер вашего заказа: #$idOrder <br>

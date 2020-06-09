@@ -4,8 +4,7 @@ if (!empty($_POST)) {
     include '../src/functions.php';
     $controller = new Burger();
     $controller->run($_POST);
-    $message = $controller->run($_POST);
-    //exit();
+    $message = $controller->getMessage();
 }
 ?>
 
