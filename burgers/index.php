@@ -1,3 +1,13 @@
+<?php
+if (!empty($_POST)) {
+    include '../src/config.php';
+    include '../src/functions.php';
+    $controller = new Burger();
+    $controller->run($_POST);
+    exit();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="ru">
   <head>
@@ -364,7 +374,7 @@
           <div class="container">
             <div class="section__title">Закажите доставку</div>
             <div class="order__form">
-              <form class="order__form-tag" id="order-form" action="order.php" method="post">
+              <form class="order__form-tag" id="order-form"  method="post">
                 <div class="order__form-col">
                   <div class="order__form-row order__form-row_double">
                     <label class="order__form-block">
