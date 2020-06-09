@@ -159,6 +159,10 @@ class Burger
         $this->pdo->query($query);
     }
 
+    /**
+     * @param $userId
+     * @return string
+     */
     protected function descOrder($userId) {
         $queryUser = $this->pdo->query("SELECT * FROM users WHERE id = $userId");
         $queryOrder = $this->pdo->query("SELECT * FROM orders WHERE user_id = $userId");
