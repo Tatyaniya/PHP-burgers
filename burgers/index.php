@@ -4,6 +4,7 @@ if (!empty($_POST)) {
     include '../src/functions.php';
     $controller = new Burger();
     $controller->run($_POST);
+    $message = $controller->run($_POST);
     //exit();
 }
 ?>
@@ -374,7 +375,7 @@ if (!empty($_POST)) {
           <div class="container">
             <div class="section__title">Закажите доставку</div>
             <div class="order__form">
-              <form class="order__form-tag" id="order-form"  method="post">
+              <form class="order__form-tag" id="order-form"  method="post" action="#order-form">
                 <div class="order__form-col">
                   <div class="order__form-row order__form-row_double">
                     <label class="order__form-block">
@@ -389,7 +390,7 @@ if (!empty($_POST)) {
                   <div class="order__form-row order__form-row_double">
                     <label class="order__form-block">
                       <div class="order__form-label">email</div>
-                      <input class="order__form-input" name="email" type="email" placeholder="">
+                      <input class="order__form-input" name="email" type="email" placeholder="" requred>
                     </label>
                     <label class="order__form-block">
                       <div class="order__form-label">Улица</div>
@@ -443,13 +444,16 @@ if (!empty($_POST)) {
                       </label>
                     </div>
                     <div class="order__form-row">
-                      <input class="order__form-button" id="form-submit" name="" type="submit" value="Заказать">
+                        <input class="order__form-button" id="form-submit" name="" type="submit" value="Заказать">
                       <input class="order__form-button order__form-button_reset" name="" type="reset" value="Очистить">
                     </div>
                   </div>
                 </div>
               </form>
             </div>
+              <div id="order-form-result" style="color: #fff; ">
+                  <?= !empty($message) ? $message : '' ?>
+              </div>
           </div>
         </section>
         <section class="section map">

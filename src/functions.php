@@ -7,11 +7,6 @@ class Burger
      */
     private $pdo;
 
-    public function __conctract()
-    {
-
-    }
-
     /**
      * @param $inputData array
      */
@@ -22,23 +17,30 @@ class Burger
         // Тут мы проверяем данные и приводим к нудному формату
         $data = $this->valider($inputData);
 
-        // получаем пользователя по электронному адресу
-        $userId = $this->getUser($data['email']);
-
-        //var_dump($userId);
-        // Такого пользователя у нас нет
-        if (empty($userId)) {
-            // Добавляем новго пользователя
-            $this->createUser($data);
-            // получаем пользователя которого только добавили
+        if (isset($data['email'])) {
+            // получаем пользователя по электронному адресу
             $userId = $this->getUser($data['email']);
+
+            // Такого пользователя у нас нет
+            if (empty($userId)) {
+                // Добавляем новго пользователя
+                $this->createUser($data);
+                // получаем пользователя которого только добавили
+                $userId = $this->getUser($data['email']);
+                // Добавляем новый заказ
+                $this->addOrder($userId, $data);
+                // выводим сообщение
+                return $message = $this->descOrder($userId);
+            }
             // Добавляем новый заказ
             $this->addOrder($userId, $data);
+            // обновляем счетчик заказов
+            $this->countOrders($userId);
+            // выводим сообщение
+            return $message = $this->descOrder($userId);
+            //var_dump($message);
         }
-        // Добавляем новый заказ
-        $this->addOrder($userId, $data);
-        // обновляем счетчик заказов
-        $this->countOrders($userId);
+
     }
 
     /**
@@ -76,8 +78,6 @@ class Burger
         }
 
         $query = ("INSERT INTO `users` (email, `name`, phone) VALUES (:email, :name, :phone)");
-//        var_dump($this->pdo);
-//        exit();
         $result = $this->pdo->prepare($query);
         $result->execute([
             'email' => $email,
@@ -135,16 +135,18 @@ class Burger
      */
     protected function getUser($email)
     {
-        $query = "SELECT * FROM users WHERE email = :email";
-        $result = $this->pdo->prepare($query);
-        $result->execute([
-            'email' => $email
-        ]);
+        if (isset($email)) {
+            $query = "SELECT * FROM users WHERE email = :email";
+            $result = $this->pdo->prepare($query);
+            $result->execute([
+                'email' => $email
+            ]);
 
-        if ($result) {
-            // получить id
-            $user = $result->fetch(PDO::FETCH_ASSOC);
-            return $userId = $user['id'];
+            if ($result) {
+                // получить id
+                $user = $result->fetch(PDO::FETCH_ASSOC);
+                return $userId = $user['id'];
+            }
         }
     }
 
@@ -155,6 +157,24 @@ class Burger
     {
         $query = "UPDATE users SET count_orders = count_orders +1 WHERE id = $userId";
         $this->pdo->query($query);
+    }
+
+    protected function descOrder($userId) {
+        $queryUser = $this->pdo->query("SELECT * FROM users WHERE id = $userId");
+        $queryOrder = $this->pdo->query("SELECT * FROM orders WHERE user_id = $userId");
+
+        $user = $queryUser->fetch(PDO::FETCH_ASSOC);
+        $order = $queryOrder->fetch(PDO::FETCH_ASSOC);
+
+
+        $address = $order['address'];
+        $countOrder = $user['count_orders'];
+
+        $idOrder = $order['id'];
+
+        return "Спасибо, ваш заказ будет доставлен по адресу: $address <br>
+        Номер вашего заказа: #$idOrder <br>
+        Это ваш $countOrder-й заказ!";
     }
 }
 

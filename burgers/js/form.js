@@ -6,7 +6,8 @@ $( function() {
             data: $(this).serialize(),
             dataType: "html",
             success: function (result) {
-               console.log('Форма отправлена');
+                $('#order-form-result').html();
+
             }
         });
     });
