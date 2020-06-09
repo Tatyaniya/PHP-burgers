@@ -120,11 +120,11 @@ class Burger
 
         $addressString = "Улица $street, дом $home, корпус $part, кв. $appt , этаж $floor";
 
-        $query = "INSERT INTO orders (user_id, create_time, address) VALUES (:user_id, :create_time, :address)";
+        $query = "INSERT INTO `orders` (user_id, create_time, address) VALUES (:user_id, :create_time, :address)";
         $result = $this->pdo->prepare($query);
         $result->execute([
             'user_id' => $userId,
-            'create_time' => date('d.m.Y H:i:s'),
+            'create_time' => date('Y-m-d H:i:s'),
             'address' => $addressString
         ]);
     }
