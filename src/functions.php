@@ -24,10 +24,9 @@ class Burger
         $this->pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASSWORD);
 
 
-        // Тут мы проверяем данные и приводим к нудному формату
+        // Тут мы проверяем данные и приводим к нужному формату
         $data = $this->valider($inputData);
 
-        if (isset($data['email'])) {
             // получаем пользователя по электронному адресу
             $userId = $this->getUser($data['email']);
 
@@ -41,14 +40,14 @@ class Burger
                 $this->addOrder($userId, $data);
                 // выводим сообщение
                 $this->message = $this->descOrder($userId);
+            } else {
+                // Добавляем новый заказ
+                $this->addOrder($userId, $data);
+                // обновляем счетчик заказов
+                $this->countOrders($userId);
+                // выводим сообщение
+                $this->message = $this->descOrder($userId);
             }
-            // Добавляем новый заказ
-            $this->addOrder($userId, $data);
-            // обновляем счетчик заказов
-            $this->countOrders($userId);
-            // выводим сообщение
-            $this->message = $this->descOrder($userId);
-        }
 
     }
 
@@ -127,14 +126,15 @@ class Burger
             $floor = 0;
         }
 
-        $addressString = "Улица $street, дом $home, корпус $part, кв. $appt , этаж $floor";
+        $addressString = " ул. $street, дом $home, корпус $part, кв. $appt , этаж $floor";
 
-        $query = "INSERT INTO `orders` (user_id, create_time, address) VALUES (:user_id, :create_time, :address)";
+        $query = "INSERT INTO orders (user_id, create_time, address, count_orders) VALUES (:user_id, :create_time, :address, :count_orders)";
         $result = $this->pdo->prepare($query);
         $result->execute([
             'user_id' => $userId,
             'create_time' => date('Y-m-d H:i:s'),
-            'address' => $addressString
+            'address' => $addressString,
+            'count_orders' => 1
         ]);
     }
 
@@ -155,6 +155,8 @@ class Burger
                 // получить id
                 $user = $result->fetch(PDO::FETCH_ASSOC);
                 return $userId = $user['id'];
+            } else {
+                return $this->createUser($_POST);
             }
         }
     }
@@ -172,11 +174,12 @@ class Burger
      * @param $userId
      * @return string
      */
-    protected function descOrder($userId) {
+    protected function descOrder($userId)
+    {
         $queryUser = $this->pdo->query("SELECT * FROM users WHERE id = $userId");
-        $queryOrder = $this->pdo->query("SELECT * FROM orders  WHERE user_id = $userId ORDER BY id DESC LIMIT 1");
+        $queryOrder = $this->pdo->query("SELECT * FROM orders WHERE user_id = $userId ORDER BY id DESC LIMIT 1");
 
-        $user = $queryUser->fetch(PDO::FETCH_ASSOC);
+        $user = $queryUser->fetchAll(PDO::FETCH_ASSOC);
         $order = $queryOrder->fetch(PDO::FETCH_ASSOC);
 
         $countOrder = $user['count_orders'];
@@ -184,22 +187,8 @@ class Burger
         $address = $order['address'];
         $idOrder = $order['id'];
 
-
         return "Спасибо, ваш заказ будет доставлен по адресу: $address <br>
         Номер вашего заказа: #$idOrder <br>
         Это ваш $countOrder-й заказ!";
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

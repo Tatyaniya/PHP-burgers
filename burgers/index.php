@@ -4,7 +4,9 @@ if (!empty($_POST)) {
     include '../src/functions.php';
     $controller = new Burger();
     $controller->run($_POST);
-    $message = $controller->getMessage();
+    if ($controller->getMessage()) {
+        $message = $controller->getMessage();
+    }
 }
 ?>
 
@@ -383,23 +385,23 @@ if (!empty($_POST)) {
                     </label>
                     <label class="order__form-block">
                       <div class="order__form-label">Телефон</div>
-                      <input class="order__form-input phone-mask" name="phone" type="text" placeholder="">
+                      <input class="order__form-input phone-mask" name="phone" type="text" placeholder="" required>
                     </label>
                   </div>
                   <div class="order__form-row order__form-row_double">
                     <label class="order__form-block">
                       <div class="order__form-label">email</div>
-                      <input class="order__form-input" name="email" type="email" placeholder="" requred>
+                      <input class="order__form-input" name="email" type="email" placeholder="" required>
                     </label>
                     <label class="order__form-block">
                       <div class="order__form-label">Улица</div>
-                      <input class="order__form-input" name="street" type="text" placeholder="">
+                      <input class="order__form-input" name="street" type="text" placeholder="" required>
                     </label>
                   </div>
                   <div class="order__form-row order__form-row_quatro">
                     <label class="order__form-block">
                       <div class="order__form-label">Дом</div>
-                      <input class="order__form-input" name="home" type="text" placeholder="">
+                      <input class="order__form-input" name="home" type="text" placeholder="" required>
                     </label>
                     <label class="order__form-block">
                       <div class="order__form-label">Корпус</div>
