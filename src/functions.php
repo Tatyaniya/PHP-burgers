@@ -42,7 +42,6 @@ class Burger
             $this->createUser($data);
             // получаем пользователя которого только добавили
             $userId = $this->getUser($data['email']);
-
         }
         // Добавляем новый заказ
         $this->addOrder($userId, $data);
@@ -51,11 +50,10 @@ class Burger
         // выводим сообщение
         $info = $this->descOrder($userId);
         $this->message = $this->sendMessage($info);
-
-
     }
 
     /**
+     * проверяем емейл на корректность
      * @param $data
      * @return string
      */
@@ -65,10 +63,10 @@ class Burger
             return $data;
         }
         return "Некорректный email";
-
     }
 
     /**
+     * создаем пользователя
      * @param $data
      */
     protected function createUser($data)
@@ -100,6 +98,7 @@ class Burger
     }
 
     /**
+     * добавляем заказ
      * @param $userId
      * @param array $data
      */
@@ -140,13 +139,10 @@ class Burger
             'create_time' => date('Y-m-d H:i:s'),
             'address' => $addressString
         ]);
-        // var_dump($result->errorInfo());
-//        if (!$ret) {
-//            trigger_error($result->errorInfo());
-//        }
     }
 
     /**
+     * получаем пользователя по емейл
      * @param $email
      * @return mixed
      */
@@ -167,6 +163,7 @@ class Burger
     }
 
     /**
+     * добавляем к счетчику заказов еще 1
      * @param $userId
      */
     protected function countOrders($userId)
@@ -176,6 +173,7 @@ class Burger
     }
 
     /**
+     * берем из базы последнего пользователя, который добавил заказ
      * @param $userId
      * @return string
      */
@@ -191,6 +189,11 @@ class Burger
         return $result->fetch(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * выводим сообщение
+     * @param array $info
+     * @return string
+     */
     protected function sendMessage(array $info)
     {
         $countOrder = $info['count_orders'];
