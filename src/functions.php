@@ -21,33 +21,37 @@ class Burger
      */
     public function run($inputData)
     {
+
         $this->pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASSWORD);
 
 
         // Тут мы проверяем данные и приводим к нужному формату
         $data = $this->valider($inputData);
 
-            // получаем пользователя по электронному адресу
+        if (!is_array($data)) {
+            echo 'Некорректно указан емейл';
+            exit();
+        }
+        // получаем пользователя по электронному адресу
+        $userId = $this->getUser($data['email']);
+
+
+        // Такого пользователя у нас нет
+        if (empty($userId)) {
+            // Добавляем новго пользователя
+            $this->createUser($data);
+            // получаем пользователя которого только добавили
             $userId = $this->getUser($data['email']);
 
-            // Такого пользователя у нас нет
-            if (empty($userId)) {
-                // Добавляем новго пользователя
-                $this->createUser($data);
-                // получаем пользователя которого только добавили
-                $userId = $this->getUser($data['email']);
-                // Добавляем новый заказ
-                $this->addOrder($userId, $data);
-                // выводим сообщение
-                $this->message = $this->descOrder($userId);
-            } else {
-                // Добавляем новый заказ
-                $this->addOrder($userId, $data);
-                // обновляем счетчик заказов
-                $this->countOrders($userId);
-                // выводим сообщение
-                $this->message = $this->descOrder($userId);
-            }
+        }
+        // Добавляем новый заказ
+        $this->addOrder($userId, $data);
+        // обновляем счетчик заказов
+        $this->countOrders($userId);
+        // выводим сообщение
+        $info = $this->descOrder($userId);
+        $this->message = $this->sendMessage($info);
+
 
     }
 
@@ -59,9 +63,9 @@ class Burger
     {
         if (filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
             return $data;
-        } else {
-            return "Некорректный email";
         }
+        return "Некорректный email";
+
     }
 
     /**
@@ -85,12 +89,13 @@ class Burger
             $phone = 0;
         }
 
-        $query = ("INSERT INTO `users` (email, `name`, phone) VALUES (:email, :name, :phone)");
+        $query = ("INSERT INTO `users` (email, count_orders, `name`, phone) VALUES (:email, :count_orders, :name, :phone)");
         $result = $this->pdo->prepare($query);
         $result->execute([
             'email' => $email,
             'name' => $name,
-            'phone' => $phone
+            'phone' => $phone,
+            'count_orders' => 0
         ]);
     }
 
@@ -128,14 +133,17 @@ class Burger
 
         $addressString = " ул. $street, дом $home, корпус $part, кв. $appt , этаж $floor";
 
-        $query = "INSERT INTO orders (user_id, create_time, address, count_orders) VALUES (:user_id, :create_time, :address, :count_orders)";
+        $query = "INSERT INTO orders (user_id, create_time, address) VALUES (:user_id, :create_time, :address)";
         $result = $this->pdo->prepare($query);
-        $result->execute([
+        $ret = $result->execute([
             'user_id' => $userId,
             'create_time' => date('Y-m-d H:i:s'),
-            'address' => $addressString,
-            'count_orders' => 1
+            'address' => $addressString
         ]);
+        // var_dump($result->errorInfo());
+//        if (!$ret) {
+//            trigger_error($result->errorInfo());
+//        }
     }
 
     /**
@@ -144,21 +152,18 @@ class Burger
      */
     protected function getUser($email)
     {
-        if (isset($email)) {
-            $query = "SELECT * FROM users WHERE email = :email";
-            $result = $this->pdo->prepare($query);
-            $result->execute([
-                'email' => $email
-            ]);
+        $query = "SELECT * FROM users WHERE email = :email LIMIT 1";
+        $result = $this->pdo->prepare($query);
+        $result->execute([
+            'email' => $email
+        ]);
 
-            if ($result) {
-                // получить id
-                $user = $result->fetch(PDO::FETCH_ASSOC);
-                return $userId = $user['id'];
-            } else {
-                return $this->createUser($_POST);
-            }
+        $user = $result->fetch(PDO::FETCH_ASSOC);
+
+        if (!empty($user['id'])) {
+            return $user['id'];
         }
+        return null;
     }
 
     /**
@@ -176,16 +181,22 @@ class Burger
      */
     protected function descOrder($userId)
     {
-        $queryUser = $this->pdo->query("SELECT * FROM users WHERE id = $userId");
-        $queryOrder = $this->pdo->query("SELECT * FROM orders WHERE user_id = $userId ORDER BY id DESC LIMIT 1");
+        $sql = "SELECT * FROM orders LEFT JOIN users ON orders.user_id = users.id WHERE user_id = :user_id ORDER BY orders.id DESC LIMIT 1";
 
-        $user = $queryUser->fetchAll(PDO::FETCH_ASSOC);
-        $order = $queryOrder->fetch(PDO::FETCH_ASSOC);
+        $result = $this->pdo->prepare($sql);
+        $result->execute([
+            'user_id' => $userId
+        ]);
 
-        $countOrder = $user['count_orders'];
+        return $result->fetch(PDO::FETCH_ASSOC);
+    }
 
-        $address = $order['address'];
-        $idOrder = $order['id'];
+    protected function sendMessage(array $info)
+    {
+        $countOrder = $info['count_orders'];
+
+        $address = $info['address'];
+        $idOrder = $info['id'];
 
         return "Спасибо, ваш заказ будет доставлен по адресу: $address <br>
         Номер вашего заказа: #$idOrder <br>
