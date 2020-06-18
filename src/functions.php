@@ -9,6 +9,7 @@ class Burger
     public $message;
 
     /**
+     * геттер для сообщения
      * @return mixed
      */
     public function getMessage()
@@ -17,13 +18,13 @@ class Burger
     }
 
     /**
+     * запускаем весь процесс
      * @param $inputData array
      */
     public function run($inputData)
     {
 
         $this->pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASSWORD);
-
 
         // Тут мы проверяем данные и приводим к нужному формату
         $data = $this->valider($inputData);
@@ -134,7 +135,7 @@ class Burger
 
         $query = "INSERT INTO orders (user_id, create_time, address) VALUES (:user_id, :create_time, :address)";
         $result = $this->pdo->prepare($query);
-        $ret = $result->execute([
+        $result->execute([
             'user_id' => $userId,
             'create_time' => date('Y-m-d H:i:s'),
             'address' => $addressString
